@@ -1,0 +1,32 @@
+body {
+	margin: 0;
+	overflow: hidden;
+	font-family: 'Avenir', Helvetica, Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+
+#satellite-view {
+	position: absolute;
+	top: 56px;
+	right: 0;
+	bottom: 0;
+	left: 0;
+}
+
+header {
+	padding: 15px 25px;
+	border-bottom: 1px solid #f2f2f2;
+}
+header h1 {
+	margin: 0;
+	padding: 0;
+	display: inline-block;
+	font-size: 18px;
+}
+header p {
+	margin: 0;
+	padding: 0 0 0 25px;
+	display: inline-block;
+	font-size: 15px;
+	color: gray;
+}

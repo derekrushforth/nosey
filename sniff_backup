@@ -1,0 +1,124 @@
+var pcap = require("pcap"),
+    _ = require('lodash'),
+    os = require('os'),
+    dns = require('dns'),
+    util = require('util'),
+    IPinfo = require('get-ipinfo'),
+    pcap_session = pcap.createSession("", ""),
+    matcher = /derek/i;
+
+console.log("Listening on " + pcap_session.device_name);
+
+var addrList = [];
+var addrLookup = [];
+
+pcap_session.on('packet', function (raw_packet) {
+    var packet = pcap.decode.packet(raw_packet);
+    //var header = packet.pcap_header;
+
+    //var ret = header.tv_sec + "." + rpad(header.tv_usec, 6) + " " + rpad(header.len + "B", 5) + " ";
+    //console.log(packet.payload.toString());
+    //console.log(packet.link);
+
+    //console.log(util.inspect(packet.payload, {depth: 50, colors: true}));
+    //console.log(util.inspect(packet.toString(), {depth: 50, colors: true}));
+
+    //console.log(util.inspect(packet.payload.payload, {depth: 50, colors: true}));
+
+    // Log ips
+    var addr = {
+      src: buildIp(packet.payload.payload.saddr),
+      dest: buildIp(packet.payload.payload.daddr)
+    };
+
+
+    /* UNIQUE COLLECTION */
+
+    // Check if this packet exists
+    if (_.findIndex(addrList, addr) === -1) {
+
+      // Validate addr
+      if (addr.src !== '' && addr.src !== '.......' && addr.dest !== '' && addr.dest !== '.......') {
+        addrList.push(addr);
+        var obj = {};
+
+        // Lookup souce address
+        if (!isLocalIp(addr.src)) {
+          IPinfo(addr.src, function(err, ip) {
+            obj.src = ip;
+            addrLookup.push(obj);
+          });
+        }
+
+        // Lookup destination address
+        if (!isLocalIp(addr.dest)) {
+          IPinfo(addr.dest, function(err, ip) {
+            //console.log(addr.src)
+            //console.log(ip);
+            //console.log('--------------------');
+            obj.dest = ip;
+            addrLookup.push(obj);
+          });
+        }
+
+      }
+    }
+
+
+    console.log(addrLookup);
+    console.log('--------------------');
+
+
+    //console.log(util.inspect(sourceAddr, {depth: 50, colors: true}));
+    //console.log(util.inspect(destAddr, {depth: 50, colors: true}));
+
+    //console.log(destAddr);
+
+   //  if (!isLocalIp(addr.src)) {
+   //   // dns.reverse(sourceAddr, function(err, hostnames) {
+    //   //   console.log(hostnames);
+    //   // });
+
+      // //console.log(addr.src);
+
+      // if (addr.src !== '' && '.......') {
+      //  IPinfo(addr.src, function(err, ip) {
+      //    //console.log(ip);
+      //    // Store IP in local array
+      //    // Only store if it's unique
+      //  });
+      // }
+      
+   //  }
+
+
+    //console.log(ret);
+    //if (matcher.test(packet.toString())) {
+      //console.log(packet.toString());
+    //}
+
+});
+
+
+/* Helpers
+-----------------------*/
+
+function buildIp(ip) {
+  return _.values(ip).join('.');
+}
+
+function isLocalIp(ip) {
+  if (_.startsWith(ip, '192.168.1')) {
+    return true
+  } else {
+    return false
+  }
+}
+
+function rpad(num, len) {
+    var str = num.toString();
+    while (str.length < len) {
+        str += " ";
+    }
+    return str;
+}
